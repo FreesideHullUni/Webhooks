@@ -20,7 +20,7 @@ wakeup_host_timeout() {
 		nc -vzw 2 "${target_hostname}" 22
 		
 		if [[ "$?" -eq 0 ]]; then
-			break
+			break;
 		fi
 		
 		sleep "${interval}";
