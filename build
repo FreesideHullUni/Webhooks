@@ -16,7 +16,10 @@ lantern_path="./lantern-build-engine";
 ###
 
 # Put any custom settings here.
+latest_release_json_url="https://api.github.com/repos/adnanh/webhook/releases/latest";
 
+webhook_platform="linux";
+webhook_arch="amd64";
 
 ###############################################################################
 
@@ -48,6 +51,7 @@ function task_setup {
 	
 	check_command git true;
 	check_command curl true;
+	check_command jq true;
 	
 	task_end $?;
 	
@@ -59,15 +63,41 @@ function task_setup {
 }
 
 function task_update {
-	task_begin "Downloading latest version of webhook";
+	stage_begin "Downloading latest version of webhook";
 	
-	task_end 1 "Error: Not implemented yet";
+	task_begin "Creating temporary directory";
+	temp_dir="$(mktemp -d --suffix "-webhook-temp")";
+	task_end $? "Error: Failed to create temporary directory";
 	
-	task_end $?;
+	task_begin "Finding assets list";
+	assets_url="$(curl -sS "${latest_release_json_url}" | jq --raw-output ".assets_url")";
+	task_end $? "Error: Failed to find assets list";
+	
+	task_begin "Finding platform-specific download url";
+	download_url="$(curl -sS "${assets_url}" | jq --raw-output ".[] | select(.name | contains(\"${webhook_platform}-${webhook_arch}\")) | .browser_download_url")";
+	task_end $? "Error: Failed to find download url";
+	
+	task_begin "Downloading webhook archive";
+	execute curl -LsS -o "${temp_dir}/webhook.tar.gz" "${download_url}";
+	task_end $? "Error: Failed to download webhook archive";
+	
+	task_begin "Extracting downloaded archive";
+	execute tar -xzf "${temp_dir}/webhook.tar.gz" -C "${temp_dir}";
+	execute rm "${temp_dir}/webhook.tar.gz";
+	task_end $? "Error: Failed to extract downloaded archive";
+	
+	task_begin "Finding and moving webhook binary";
+	webhook_filepath="$(find "${temp_dir}" -type f -name "webhook" | head -n1)";
+	execute mv "${webhook_filepath}" "$(pwd)";
+	exit_code="$?";
+	execute rm -r "${temp_dir}";
+	task_end $? "Error: Failed to find and move webhook binary";
+	
+	stage_end $?;
 	
 	task_begin "Restarting webhook";
 	
-	sudo systemctl restart webhook.service;
+	execute sudo systemctl restart webhook.service;
 	
 	task_end $?;
 }
