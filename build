@@ -70,6 +70,8 @@ function task_setup {
 	execute sudo systemctl restart rsyslog.service;
 	task_end "${exit_code}" "Error: Failed to install rsyslog configuration file";
 	
+	tasks_run update;
+	
 	task_begin "Setting up systemd service";
 	execute sudo cp "./webhook-rsyslog.conf" "/etc/rsyslog.d/webhook.conf";
 	exit_code="$?";
@@ -77,8 +79,6 @@ function task_setup {
 	execute sudo systemctl enable webhook.service;
 	execute sudo systemctl start webhook.service;
 	task_end "${exit_code}";
-	
-	tasks_run update;
 }
 
 function task_update {
