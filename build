@@ -52,12 +52,31 @@ function task_setup {
 	check_command git true;
 	check_command curl true;
 	check_command jq true;
+	check_command rsyslogd true;
 	
 	task_end $?;
 	
 	task_begin "Initialising submodules";
 	git submodule update --init;
 	task_end $?;
+	
+	task_begin "Checking environment file";
+	[ -f ".webhook-environment" ];
+	task_end $? "Error: Failed to find webhook environment file. Copy '.webhook-environment-example' to '.webhook-environment' and replace the specified values.";
+	
+	task_begin "Installing rsyslog configuration";
+	execute sudo cp "./webhook-rsyslog.conf" "/etc/rsyslog.d/webhook.conf";
+	exit_code="$?";
+	execute sudo systemctl restart rsyslog.service;
+	task_end "${exit_code}" "Error: Failed to install rsyslog configuration file";
+	
+	task_begin "Setting up systemd service";
+	execute sudo cp "webhook-rsyslog.conf" "/etc/rsyslog.d/webhook.conf";
+	exit_code="$?";
+	execute sudo systemctl daemon-reload;
+	execute sudo systemctl enable webhook.service;
+	execute sudo systemctl start webhook.service;
+	task_end "${exit_code}";
 	
 	tasks_run update;
 }
@@ -91,7 +110,7 @@ function task_update {
 	execute mv "${webhook_filepath}" "$(pwd)";
 	exit_code="$?";
 	execute rm -r "${temp_dir}";
-	task_end $? "Error: Failed to find and move webhook binary";
+	task_end "${exit_code}" "Error: Failed to find and move webhook binary";
 	
 	task_begin "Setting permissions";
 	chmod 0555 "./webhook";

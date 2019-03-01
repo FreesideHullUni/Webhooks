@@ -1,0 +1,13 @@
+[Unit]
+Description=Small server for creating HTTP endpoints (hooks)
+Documentation=https://github.com/adnanh/webhook/
+
+[Service]
+User=webhook
+ExecStart=/usr/local/bin/webhook -verbose -hooks /srv/webhooks/webhook.conf -ip [::1] -port 3060
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=webhook
+
+[Install]
+WantedBy=multi-user.target
