@@ -93,6 +93,10 @@ function task_update {
 	execute rm -r "${temp_dir}";
 	task_end $? "Error: Failed to find and move webhook binary";
 	
+	task_begin "Setting permissions";
+	chmod 0555 "./webhook";
+	task_end $?;
+	
 	stage_end $?;
 	
 	task_begin "Restarting webhook";
