@@ -14,7 +14,7 @@ wakeup_host_timeout() {
 	interface="${target_interface}";
 	interval="2";
 	
-	echo "[${SECONDS}] Attempting to wake ${target_mac_address} on interface ${interface}.";
+	echo "[${SECONDS}] Attempting to wake ${target_hostname} (${target_mac_address}) on interface ${interface}.";
 	
 	start_time="${SECONDS}";
 	while [[ "$(((${SECONDS} - ${start_time})))" -lt "${timeout_seconds}" ]]; do
@@ -27,6 +27,7 @@ wakeup_host_timeout() {
 		if [[ "$?" -ne 0 ]]; then echo "${output}"; fi
 		
 		if [[ "$?" -eq 0 ]]; then
+			echo "[${SECONDS}] Woken ${target_hostname} (${target_mac_address})."
 			break;
 		fi
 		
