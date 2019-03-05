@@ -4,6 +4,7 @@ Documentation=https://github.com/adnanh/webhook/
 
 [Service]
 User=root
+EnvironmentFile=/srv/Webhooks/.webhook-environment
 ExecStart=/srv/Webhooks/webhook -verbose -template -hooks /srv/Webhooks/webhooks.json -ip [::1] -port 3060
 StandardOutput=syslog
 StandardError=syslog
