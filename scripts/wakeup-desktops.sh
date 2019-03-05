@@ -1,12 +1,17 @@
 #!/bin/bash -e
 echo  "[${SECONDS}] Waking Hosts"
 
+# Guess the default target inferface, but only if it's not been set already
+if [ "${target_interface}" = "" ]; then
+	target_interface="$(find /sys/class/net -type l | awk 'BEGIN { FS="/" } $0 !~ /lo/ { print $NF; exit }')";
+fi
+
 wakeup_host_timeout() {
 	target_mac_address="$1";
 	target_hostname="$2";
 	
 	timeout_seconds="360";
-	interface="eno1";
+	interface="${target_interface}";
 	interval="2";
 	
 	echo "[${SECONDS}] Attempting to wake ${target_mac_address}.";
