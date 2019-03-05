@@ -19,7 +19,7 @@ wakeup_host_timeout() {
 	start_time="${SECONDS}";
 	while [[ "$(((${SECONDS} - ${start_time})))" -lt "${timeout_seconds}" ]]; do
 		
-		ether-wake -i "${interace}" "${target_mac_address}";
+		ether-wake -i "${interface}" "${target_mac_address}";
 		
 		# Try to connect on port 22
 		nc -vzw 2 "${target_hostname}" 22
